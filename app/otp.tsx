@@ -2,11 +2,11 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Linking,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import Colors from "@/constants/Colors";
 import { useState } from "react";
@@ -37,20 +37,34 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const router = useRouter();
-  const keyboardVerticalOffset = Platform.OS === "ios" ? 90 : 0;
+  const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0;
   const { bottom } = useSafeAreaInsets();
 
   const openLink = () => {
     Linking.openURL("https://github.com/vsmaliakou");
   };
 
-  const sendOTP = async () => {};
+  const sendOTP = async () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      router.push(`verify/${phoneNumber}`);
+    }, 1000);
+  };
 
   const trySignIn = async () => {};
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }}>
       <View style={styles.container}>
+        {loading && (
+          <View style={[StyleSheet.absoluteFill, styles.loading]}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+
+            <Text style={{ fontSize: 18, padding: 10 }}>Sending code...</Text>
+          </View>
+        )}
+
         <Text style={styles.description}>
           WhatsApp will need to verify your account. Carrier charges may apply.
         </Text>
@@ -179,6 +193,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     padding: 6,
     marginTop: 10,
+  },
+  loading: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
