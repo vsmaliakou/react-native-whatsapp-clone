@@ -64,6 +64,7 @@ const Layout = () => {
           name="settings"
           options={{
             title: "Settings",
+            headerShown: false,
             tabBarIcon: ({ size, color }) => (
               <Ionicons name="cog" size={size} color={color} />
             ),
