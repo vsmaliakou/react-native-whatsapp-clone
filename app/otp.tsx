@@ -45,7 +45,7 @@ const Page = () => {
   const router = useRouter();
   const keyboardVerticalOffset = Platform.OS === "ios" ? 90 : 0;
   const { bottom } = useSafeAreaInsets();
-  const { signUp, setActive } = useSignUp();
+  const { signUp } = useSignUp();
   const { signIn } = useSignIn();
 
   const openLink = () => {
