@@ -7,6 +7,7 @@ import {
   Linking,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import Colors from "@/constants/Colors";
 import { useState } from "react";
@@ -14,6 +15,11 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaskInput from "react-native-mask-input";
+import {
+  isClerkAPIResponseError,
+  useSignIn,
+  useSignUp,
+} from "@clerk/clerk-expo";
 
 const BEL_PHONE = [
   "+",
@@ -37,25 +43,60 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const router = useRouter();
-  const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0;
+  const keyboardVerticalOffset = Platform.OS === "ios" ? 90 : 0;
   const { bottom } = useSafeAreaInsets();
+  const { signUp, setActive } = useSignUp();
+  const { signIn } = useSignIn();
 
   const openLink = () => {
     Linking.openURL("https://github.com/vsmaliakou");
   };
 
-  const sendOTP = async () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      router.push(`verify/${phoneNumber}`);
-    }, 1000);
+  const trySignIn = async () => {
+    const { supportedFirstFactors } = await signIn!.create({
+      identifier: phoneNumber,
+    });
+
+    const firstPhoneFactor: any = supportedFirstFactors.find((factor: any) => {
+      return factor.strategy === "phone_code";
+    });
+
+    const { phoneNumberId } = firstPhoneFactor;
+
+    await signIn!.prepareFirstFactor({ strategy: "phone_code", phoneNumberId });
+
+    router.push(`/verify/${phoneNumber}?signin=true`);
+    setLoading(false);
   };
 
-  const trySignIn = async () => {};
+  const sendOTP = async () => {
+    setLoading(true);
+
+    try {
+      await signUp!.create({ phoneNumber });
+
+      signUp!.preparePhoneNumberVerification();
+
+      router.push(`/verify/${phoneNumber}`);
+    } catch (error) {
+      if (isClerkAPIResponseError(error)) {
+        if (error.errors[0].code === "form_identifier_exists") {
+          console.log("user exists");
+          await trySignIn();
+        } else {
+          setLoading(false);
+          Alert.alert("Error", error.errors[0].message);
+        }
+      }
+    }
+  };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior="padding"
+      keyboardVerticalOffset={keyboardVerticalOffset}
+      style={{ flex: 1 }}
+    >
       <View style={styles.container}>
         {loading && (
           <View style={[StyleSheet.absoluteFill, styles.loading]}>
@@ -197,9 +238,9 @@ const styles = StyleSheet.create({
   loading: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 10,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
