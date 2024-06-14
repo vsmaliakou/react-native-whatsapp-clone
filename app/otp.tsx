@@ -88,6 +88,8 @@ const Page = () => {
           Alert.alert("Error", error.errors[0].message);
         }
       }
+    } finally {
+      setLoading(false);
     }
   };
 
