@@ -10,10 +10,10 @@ const Layout = () => {
           title: "Settings",
           headerLargeTitle: true,
           headerShadowVisible: false,
-          headerStyle: { backgroundColor: Colors.background },
-          headerSearchBarOptions: {
-            placeholder: "Search",
-          },
+          headerBlurEffect: "regular",
+          headerTransparent: true,
+          headerSearchBarOptions: { placeholder: "Search" },
+          headerLargeStyle: { backgroundColor: Colors.background },
         }}
       />
     </Stack>

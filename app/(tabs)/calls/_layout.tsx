@@ -14,9 +14,8 @@ const Layout = () => {
           headerShadowVisible: false,
           headerBlurEffect: "regular",
           headerTransparent: true,
-          headerSearchBarOptions: {
-            placeholder: "Search",
-          },
+          headerSearchBarOptions: { placeholder: "Search" },
+          headerLargeStyle: { backgroundColor: Colors.background },
           headerRight: () => (
             <TouchableOpacity>
               <Ionicons name="call-outline" color={Colors.primary} size={30} />

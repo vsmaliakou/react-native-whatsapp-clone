@@ -13,12 +13,8 @@ const Layout = () => {
           headerLargeTitle: true,
           headerBlurEffect: "regular",
           headerTransparent: true,
-          headerSearchBarOptions: {
-            placeholder: "Search",
-          },
-          headerStyle: {
-            backgroundColor: "#ffffff",
-          },
+          headerSearchBarOptions: { placeholder: "Search" },
+          headerLargeStyle: { backgroundColor: "#ffffff" },
           headerLeft: () => (
             <TouchableOpacity>
               <Ionicons
