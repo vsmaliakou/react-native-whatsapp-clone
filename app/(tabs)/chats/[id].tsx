@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { View, StyleSheet, ImageBackground } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { View, StyleSheet, ImageBackground, Text } from "react-native";
 import {
   Bubble,
   GiftedChat,
@@ -12,11 +12,36 @@ import messageData from "@/assets/data/messages.json";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import { Swipeable } from "react-native-gesture-handler";
+import ChatMessageBox from "@/components/ChatMessageBox";
+import { format } from "date-fns";
+import ReplyMessageBar from "@/components/ReplyMessageBar";
 
 const Page = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const insets = useSafeAreaInsets();
   const [text, setText] = useState("");
+  const [replyMessage, setReplyMessage] = useState<IMessage | null>(null);
+  const swipeableRowRef = useRef<Swipeable | null>(null);
+
+  const onSend = useCallback((messages: IMessage[]) => {
+    setMessages((previousMessages) =>
+      GiftedChat.append(previousMessages, messages)
+    );
+  }, []);
+
+  const updateRowRef = useCallback(
+    (ref: any) => {
+      if (
+        ref &&
+        replyMessage &&
+        ref.props.children.props.currentMessage?._id === replyMessage._id
+      ) {
+        swipeableRowRef.current = ref;
+      }
+    },
+    [replyMessage]
+  );
 
   useEffect(() => {
     setMessages([
@@ -42,11 +67,12 @@ const Page = () => {
     ]);
   }, []);
 
-  const onSend = useCallback((messages: IMessage[]) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, messages)
-    );
-  }, []);
+  useEffect(() => {
+    if (replyMessage && swipeableRowRef.current) {
+      swipeableRowRef.current.close();
+      swipeableRowRef.current = null;
+    }
+  }, [replyMessage]);
 
   return (
     <ImageBackground
@@ -69,6 +95,20 @@ const Page = () => {
               left: { backgroundColor: "#fff" },
               right: { backgroundColor: Colors.lightGreen },
             }}
+            renderTime={(props) => (
+              <View style={{ flex: 1, alignItems: "flex-end" }}>
+                <Text
+                  style={{
+                    color: Colors.gray,
+                    fontSize: 12,
+                    paddingRight: 12,
+                    paddingBottom: 8,
+                  }}
+                >
+                  {format(props.currentMessage?.createdAt as Date, "hh:mm")}
+                </Text>
+              </View>
+            )}
           />
         )}
         renderSystemMessage={(props) => (
@@ -123,6 +163,19 @@ const Page = () => {
                 <Ionicons name="add" color={Colors.primary} size={28} />
               </View>
             )}
+          />
+        )}
+        renderMessage={(props) => (
+          <ChatMessageBox
+            {...props}
+            updateRowRef={updateRowRef}
+            setReplyOnSwipeOpen={setReplyMessage}
+          />
+        )}
+        renderChatFooter={() => (
+          <ReplyMessageBar
+            clearReply={() => setReplyMessage(null)}
+            message={replyMessage}
           />
         )}
       />
